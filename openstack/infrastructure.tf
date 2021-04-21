@@ -10,6 +10,7 @@ module "design" {
 }
 
 module "instance_config" {
+  count            = var.config_mgmt == "puppet" ? 1 : 0
   source           = "../common/instance_config"
   instances        = module.design.instances
   config_git_url   = var.config_git_url
@@ -21,6 +22,7 @@ module "instance_config" {
 }
 
 module "cluster_config" {
+  count           = var.config_mgmt == "puppet" ? 1 : 0
   source          = "../common/cluster_config"
   instances       = local.all_instances
   nb_users        = var.nb_users
@@ -33,7 +35,7 @@ module "cluster_config" {
   domain_name     = module.design.domain_name
   cluster_name    = var.cluster_name
   volume_devices  = local.volume_devices
-  private_ssh_key = module.instance_config.private_key
+  private_ssh_key = var.config_mgmt == "puppet" ? module.instance_config.0.private_key : ""
 }
 
 data "openstack_images_image_v2" "image" {
@@ -57,7 +59,7 @@ resource "openstack_compute_instance_v2" "instances" {
 
   flavor_name = each.value.type
   key_pair    = openstack_compute_keypair_v2.keypair.name
-  user_data   = base64gzip(module.instance_config.user_data[each.key])
+  user_data   = var.config_mgmt == "puppet" ? base64gzip(module.instance_config.0.user_data[each.key]): null
 
   network {
     port = openstack_networking_port_v2.nic[each.key].id
@@ -120,15 +122,16 @@ locals {
 }
 
 locals {
-  all_instances = { for x, values in module.design.instances :
+  all_instances = (var.config_mgmt == "puppet" ?
+  { for x, values in module.design.instances :
     x => {
       public_ip = contains(values["tags"], "public") ? local.public_ip[x] : ""
       local_ip  = openstack_networking_port_v2.nic[x].all_fixed_ips[0]
       tags      = values["tags"]
       id        = openstack_compute_instance_v2.instances[x].id
       hostkeys = {
-        rsa = module.instance_config.rsa_hostkeys[x]
+        rsa = module.instance_config.0.rsa_hostkeys[x]
       }
     }
-  }
+  } : {} )
 }

@@ -3,7 +3,8 @@ terraform {
 }
 
 module "openstack" {
-  source         = "git::https://github.com/ComputeCanada/magic_castle.git//openstack"
+  source         = "../../openstack/"
+  config_mgmt    = "none"
   config_git_url = "https://github.com/ComputeCanada/puppet-magic_castle.git"
   config_version = "main"
 

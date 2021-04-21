@@ -57,10 +57,6 @@ variable "guest_passwd" {
 variable "config_git_url" {
   type        = string
   description = "URL to the Magic Castle Puppet configuration git repo"
-  validation {
-    condition     = can(regex("^https://.*\\.git$", var.config_git_url))
-    error_message = "The config_git_url variable must be an https url to a git repo."
-  }
 }
 
 variable "config_version" {
@@ -147,4 +143,9 @@ variable "software_stack" {
   type        = string
   default     = "computecanada"
   description = "Provider of research computing software stack (can be 'computecanada' or 'eessi')"
+}
+
+variable "config_mgmt" {
+  type    = string
+  default = "puppet"
 }
