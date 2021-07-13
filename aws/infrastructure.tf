@@ -81,7 +81,7 @@ resource "aws_instance" "instances" {
   ami               = var.image
   user_data         = base64gzip(module.instance_config.user_data[each.key])
   availability_zone = local.availability_zone
-  placement_group   = contains(each.value.tags, "efa") ? aws_placement_group.efa_group : null
+  placement_group   = contains(each.value.tags, "efa") ? aws_placement_group.efa_group.id : null
 
   key_name          = aws_key_pair.key.key_name
 
@@ -118,7 +118,7 @@ resource "aws_spot_instance_request" "spot_instances" {
   ami               = var.image
   user_data         = base64gzip(module.instance_config.user_data[each.key])
   availability_zone = local.availability_zone
-  placement_group   = contains(each.value.tags, "efa") ? aws_placement_group.efa_group : null
+  placement_group   = contains(each.value.tags, "efa") ? aws_placement_group.efa_group.id : null
 
   key_name          = aws_key_pair.key.key_name
 
