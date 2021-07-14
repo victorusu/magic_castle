@@ -35,17 +35,6 @@ resource "aws_subnet" "subnet" {
   }
 }
 
-resource "aws_subnet" "efa_subnet" {
-  vpc_id     = aws_vpc.network.id
-  cidr_block = "10.0.1.0/24"
-  availability_zone = local.availability_zone
-  map_public_ip_on_launch = true
-
-  tags = {
-    Name = "${var.cluster_name}-efa-subnet"
-  }
-}
-
 resource "aws_security_group" "allow_out_any" {
   name   = "allow_out_any"
   vpc_id = aws_vpc.network.id
@@ -108,7 +97,7 @@ resource "aws_security_group" "allow_any_inside_vpc" {
 
 resource "aws_network_interface" "nic" {
   for_each        = module.design.instances
-  subnet_id       = contains(each.value["tags"], "efa") ? aws_subnet.efa_subnet.id : aws_subnet.subnet.id
+  subnet_id       = aws_subnet.subnet.id
   interface_type  = contains(each.value["tags"], "efa") ? "efa" : null
 
   security_groups = concat(
